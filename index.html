@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng quay may mắn</title>
+</head>
+<style>
+    *{
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    body{
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+    .spin_wrapper{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        .anh{
+            position: absolute;
+        }
+    }
+    #circle{
+        height: 75%;
+        border-radius: 500px;
+        transition: 5s;
+        rotate: 180deg;
+        position: absolute;
+    }
+    #spiner{
+        height: 15%;
+        border-radius: 50px;
+        animation: zoomInOut 0.5s infinite;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+    }
+    #background{
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+    }
+    .text{
+        color: white;
+    }
+    @keyframes zoomInOut{
+        0% {
+            scale: 0.95;
+        }
+        100% {
+            scale: 1;
+        }
+    }
+    #form {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scale: 0;
+        transition: 0.3s ease;
+        pointer-events: none;
+        transform-origin: 0 0;
+
+        input{
+            width: 100%;
+            padding: 10px;
+            margin-top: 1px;
+        }
+        button{
+            background-color: rgb(236, 0, 0);
+            padding: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: white;
+        }
+    }
+
+    #form.active{
+        scale: 1;
+        pointer-events: all;
+    }
+    .overlay {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.31);
+        top: 0;
+        left: 0;
+        z-index: 99;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s ease;
+    }
+    #form.active ~ .overlay {
+        opacity: 1;
+        pointer-events: all;
+    }
+</style>
+<body>
+    <div class="spin_wrapper">
+        <img src="img/background.png" id="background" alt="">
+        <img src="img/circle.png" id="circle" alt="">
+        <img src="img/spiner.png" id="spiner" alt="">
+    </div>
+    <div id="form">
+        <h2 id="reward">Chúc mừng đã trúng </h2>
+        <input type="text" placeholder="Họ và tên" id="name">
+        <input type="text" placeholder="Email" id="email">
+        <input type="text" placeholder="Phone" id="phone">
+        <button id="submit">Nhận thưởng</button>
+    </div>
+    <div class="overlay"></div>
+</body>
+<script>
+    const spiner = document.getElementById('spiner');
+    const circle = document.getElementById('circle');
+    const form = document.getElementById('form');
+    const rewardTitle = document.getElementById('reward');
+    const name = document.getElementById('name');
+    const email = document.getElementById('email');
+    const phone = document.getElementById('phone');
+    const submit = document.getElementById('submit');
+
+    // -------------------------
+    let countMac = 0;
+    async function checkMac() {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbygDRNBPzezpSOD4ecSK6qUg7e5BcP1ulra1YlmiUknRFqGSmr-EglESFxth638TYOS9g/exec") 
+        const data = await response.json()
+        return (countMac = data.data );     
+    }
+
+    checkMac()
+    document.addEventListener("DOMContentLoaded", () => {
+        const spined = localStorage.getItem("spined")
+        if(spined) {
+            spiner.style = "pointer-events: none"
+            rewardTitle.innerText += reward
+            form.classList.add("active")
+        }
+    })
+    let reward = " chúc may mắn"
+    spiner.addEventListener("click", ()=>{
+        const random = Math.floor(Math.random()*100)
+        spiner.style = "pointer-events: none"
+        console.log(random)
+        if(countMac <= 5 && random > 0 && random <= 5){
+            circle.style = "rotate: 1130deg"
+            reward = " Macbook"
+        }else if(random > 5 && random <= 35){
+            circle.style = "rotate: 1200deg"
+            reward = " 300$"
+        }else if(random > 35 && random <= 55){
+            circle.style = "rotate: 1436deg"
+            reward = " 200$"
+        }else if(random > 55 && random <= 70){
+            circle.style = "rotate: 1322deg"
+            reward = " 500$"
+        }else if(random > 70 && random <= 80){
+            circle.style = "rotate: 1260deg"
+            reward = " 100$"
+        } else {
+            circle.style= "rotate: 1370deg"
+        }
+        setTimeout(()=> {
+            rewardTitle.innerText += reward
+            form.classList.add("active")
+            localStorage.setItem('spined', true)
+            localStorage.setItem('reward', reward)
+        },5000)
+
+        //------------------------------------------
+
+        submit.addEventListener("click", ()=> {
+            const data = {
+                nameData: name.value,
+                emailData: email.value,
+                phoneData: phone.value,
+                rewardData: reward
+            }
+            postGoogleForm(data)
+        })
+
+        async function postGoogleForm(data) {
+            const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSes3Czy96E50XSwdcqPLtds8w_ETVE-fx8D5LfdETUUJe8CSg/formResponse"
+            const postName = "entry.10267368";
+            const postEmail = "entry.942080871";
+            const postPhone = "entry.1499951864";
+            const postReward = "entry.310342493";
+            const formdata = new FormData()
+
+            formdata.append(postName, data.nameData)
+            formdata.append(postEmail, data.emailData)
+            formdata.append(postPhone, data.phoneData)
+            formdata.append(postReward, data.rewardData)
+
+
+            try{
+                await fetch(formUrl, {
+                    method: "POST",
+                    body: formdata
+                })
+            }catch(error){
+                console.log(error);
+            }
+        }
+    })
+    
+</script>
+</html>
+
+
+
